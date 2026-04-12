@@ -9,8 +9,8 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 from src.data import load_cora, sample_cora_subgraph
-from src.models import build_model
-from src.trainers import train_full_batch
+from src.models import ClusterGCNNet, GraphSAGENet
+from src.trainers import train_clustergcn, train_full_batch, train_graphsaint
 
 
 def parse_args():
@@ -40,8 +40,53 @@ def main():
         f"Split sizes: train={int(data.train_mask.sum())}, val={int(data.val_mask.sum())}, test={int(data.test_mask.sum())}"
     )
 
-    model = build_model(args.model, data.num_node_features, args.hidden_dim, dataset.num_classes, args.dropout)
-    results = train_full_batch(model, data, epochs=args.epochs, lr=args.lr, weight_decay=args.weight_decay)
+    if args.model == "graphsage":
+        model = GraphSAGENet(
+            data.num_node_features,
+            args.hidden_dim,
+            dataset.num_classes,
+            dropout=args.dropout,
+        )
+        results = train_full_batch(
+            model,
+            data,
+            epochs=args.epochs,
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+        )
+
+    elif args.model == "graphsaint":
+        model = GraphSAGENet(
+            data.num_node_features,
+            args.hidden_dim,
+            dataset.num_classes,
+            dropout=args.dropout,
+        )
+        results = train_graphsaint(
+            model,
+            data,
+            epochs=args.epochs,
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+        )
+
+    elif args.model == "clustergcn":
+        model = ClusterGCNNet(
+            data.num_node_features,
+            args.hidden_dim,
+            dataset.num_classes,
+            dropout=args.dropout,
+        )
+        results = train_clustergcn(
+            model,
+            data,
+            epochs=args.epochs,
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+        )
+
+    else:
+        raise ValueError(f"Unknown model: {args.model}")
 
     best = results["best"]
     print("\nBest results based on validation accuracy")
@@ -55,10 +100,11 @@ def main():
     print(f"Max RSS after forward: {results['max_rss_after_forward_mb']:.2f} MB")
     print(f"Max RSS after backward: {results['max_rss_after_backward_mb']:.2f} MB")
 
-    first = results['profiles'][0]
-    print("\nForward-pass RAM snapshots from epoch 1")
-    for snap in first.forward_snapshots:
-        print(f"  {snap['step']}: {snap['rss_mb']:.2f} MB")
+    if results["profiles"] and results["profiles"][0].forward_snapshots:
+        first = results["profiles"][0]
+        print("\nForward-pass RAM snapshots from epoch 1")
+        for snap in first.forward_snapshots:
+            print(f"  {snap['step']}: {snap['rss_mb']:.2f} MB")
 
 
 if __name__ == "__main__":
