@@ -8,7 +8,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from src.data import load_cora, sample_cora_subgraph
+from src.data import load_cora, sample_cora_subgraph, subgraph_from_growth_order,build_seed_growth_order
 from src.models import ClusterGCNNet, GraphSAGENet
 from src.trainers import train_clustergcn, train_full_batch, train_graphsaint
 
@@ -28,9 +28,21 @@ def parse_args():
 
 def main():
     args = parse_args()
-    dataset, data = load_cora(root=os.path.join(ROOT, "data"))
-    data = sample_cora_subgraph(data, fraction=args.fraction, seed=args.seed)
+    dataset, full_data = load_cora(args.root)
 
+    growth_order, seed_nodes = build_seed_growth_order(
+        full_data,
+        num_seed_nodes=6,
+        seed=args.seed,
+    )
+
+    data = subgraph_from_growth_order(
+        full_data,
+        growth_order=growth_order,
+        fraction=args.fraction,
+    )
+
+    print(f"Seed nodes: {seed_nodes.tolist()}")
     print(f"Loaded Cora for model={args.model}")
     print(f"Nodes: {data.num_nodes}")
     print(f"Edges: {data.num_edges}")
