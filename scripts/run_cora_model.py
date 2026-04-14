@@ -23,6 +23,8 @@ def parse_args():
     p.add_argument("--lr", type=float, default=0.01)
     p.add_argument("--weight-decay", type=float, default=5e-4)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--root", type=str, default="data")
+    
     return p.parse_args()
 
 
