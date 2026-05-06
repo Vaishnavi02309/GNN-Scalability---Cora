@@ -1,0 +1,79 @@
+# SysML Graph Extraction Report
+
+- Nodes: 1792
+- Edges: 1874
+- Duplicate node IDs: 0
+- Dangling edges: 0
+- Weakly connected components: 5
+- Largest component size: 990
+- Isolated nodes: 0
+- Validation passed: True
+
+## Node Types
+- OwningMembership: 408
+- FeatureMembership: 131
+- Documentation: 104
+- Feature: 94
+- LiteralInteger: 90
+- FeatureTyping: 87
+- MultiplicityRange: 74
+- ReferenceUsage: 71
+- Subsetting: 67
+- Redefinition: 63
+- ReturnParameterMembership: 48
+- MembershipImport: 47
+- FeatureValue: 47
+- Subclassification: 44
+- ActionUsage: 44
+- LiteralInfinity: 43
+- ParameterMembership: 40
+- Membership: 35
+- Multiplicity: 33
+- FeatureReferenceExpression: 29
+- EndFeatureMembership: 24
+- ReferenceSubsetting: 19
+- ActionDefinition: 18
+- OccurrenceUsage: 11
+- RenderingUsage: 10
+- FeatureChaining: 10
+- OperatorExpression: 9
+- FeatureChainExpression: 8
+- UseCaseUsage: 6
+- SuccessionAsUsage: 6
+- Namespace: 5
+- LibraryPackage: 5
+- ConstraintUsage: 5
+- ViewUsage: 4
+- RenderingDefinition: 4
+- FlowDefinition: 4
+- BindingConnectorAsUsage: 4
+- ViewpointUsage: 3
+- SubjectMembership: 3
+- AttributeUsage: 3
+- FlowUsage: 3
+- AssignmentActionUsage: 3
+- EventOccurrenceUsage: 2
+- ConnectionUsage: 2
+- Expression: 2
+- ResultExpressionMembership: 2
+- LiteralBoolean: 2
+- ViewDefinition: 1
+- SatisfyRequirementUsage: 1
+- RequirementConstraintMembership: 1
+- ViewpointDefinition: 1
+- UseCaseDefinition: 1
+- ObjectiveMembership: 1
+- RequirementUsage: 1
+- ConstraintDefinition: 1
+- StateUsage: 1
+- TransitionUsage: 1
+- TransitionFeatureMembership: 1
+- AcceptActionUsage: 1
+- WhileLoopActionUsage: 1
+- InvocationExpression: 1
+- IndexExpression: 1
+- PerformActionUsage: 1
+
+## Edge Types
+- contains: 1787
+- typed_by: 87
