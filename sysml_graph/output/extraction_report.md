@@ -1,7 +1,7 @@
 # SysML Graph Extraction Report
 
 - Nodes: 1792
-- Edges: 1874
+- Edges: 3349
 - Duplicate node IDs: 0
 - Dangling edges: 0
 - Weakly connected components: 5
@@ -76,4 +76,44 @@
 
 ## Edge Types
 - contains: 1787
-- typed_by: 87
+- owns: 408
+- subsets: 202
+- typed_by: 174
+- has_feature: 154
+- redefines: 140
+- has_member: 56
+- has_return_parameter: 48
+- imports: 47
+- has_value: 47
+- specializes: 44
+- has_action: 44
+- has_parameter: 40
+- references: 29
+- has_end: 24
+- chains: 18
+- has_occurrence: 11
+- has_rendering: 10
+- has_operator: 9
+- has_use_case: 6
+- connects: 6
+- precedes: 6
+- has_constraint: 5
+- has_view: 4
+- has_viewpoint: 3
+- has_subject: 3
+- has_attribute: 3
+- flows_to: 3
+- has_assignment_action: 3
+- has_event: 2
+- has_result: 2
+- satisfies: 1
+- constrains: 1
+- has_objective: 1
+- has_requirement: 1
+- has_state: 1
+- has_transition: 1
+- has_accept_action: 1
+- has_loop: 1
+- invokes: 1
+- indexes: 1
+- performs_action: 1
