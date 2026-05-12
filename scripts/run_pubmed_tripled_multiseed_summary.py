@@ -5,6 +5,11 @@ import copy
 import os
 import random
 import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 import time
 from typing import Dict, List
 
@@ -12,6 +17,16 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch_geometric.loader import ClusterData, ClusterLoader, GraphSAINTNodeSampler
+
+from contextlib import redirect_stdout
+import io
+
+from src.trainers import (
+    train_graphsage_computational_memory,
+    train_graphsaint_computational_memory,
+    train_clustergcn_computational_memory,
+)
+from src.gat_trainer import train_gat_computational_memory
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
@@ -244,6 +259,72 @@ def parse_args():
     )
     return p.parse_args()
 
+def measure_forward_memory_mb(model_name, dataset, data, args):
+    """
+    Dynamically measures forward computational memory for one model and one graph fraction.
+    This avoids hardcoded memory values in the multi-seed summary table.
+    """
+
+    set_seed(args.seeds[0])
+
+    if model_name == "gat":
+        model = SimpleGATNet(
+            data.num_node_features,
+            hidden_channels=8,
+            out_channels=dataset.num_classes,
+            heads=8,
+            dropout=0.6,
+        )
+
+        # Suppress long per-epoch memory logs in the final multi-seed output
+        with redirect_stdout(io.StringIO()):
+            summary = train_gat_computational_memory(
+                model,
+                data,
+                epochs=args.epochs,
+                lr=0.005,
+                weight_decay=args.weight_decay,
+            )
+
+    else:
+        model = build_model(
+            model_name,
+            data.num_node_features,
+            args.hidden_dim,
+            dataset.num_classes,
+            args.dropout,
+        )
+
+        with redirect_stdout(io.StringIO()):
+            if model_name == "graphsage":
+                summary = train_graphsage_computational_memory(
+                    model,
+                    data,
+                    epochs=args.epochs,
+                    lr=args.lr,
+                    weight_decay=args.weight_decay,
+                )
+            elif model_name == "graphsaint":
+                summary = train_graphsaint_computational_memory(
+                    model,
+                    data,
+                    epochs=args.epochs,
+                    lr=args.lr,
+                    weight_decay=args.weight_decay,
+                )
+            elif model_name == "clustergcn":
+                summary = train_clustergcn_computational_memory(
+                    model,
+                    data,
+                    epochs=args.epochs,
+                    lr=args.lr,
+                    weight_decay=args.weight_decay,
+                )
+            else:
+                raise ValueError(model_name)
+
+    return summary["computational_memory"]["forward_peak_mb_mean"]
+
 
 def main():
     args = parse_args()
@@ -341,22 +422,28 @@ def main():
 
             stats = compute_bias_variance(seed_outputs, dataset.num_classes)
 
-            rows.append(
-                {
-                    "model": model_name,
-                    "fraction": fraction,
-                    "nodes": int(data.num_nodes),
-                    "edges": int(data.num_edges),
-                    **stats,
-                }
+            forward_memory_mb = measure_forward_memory_mb(
+                model_name=model_name,
+                dataset=dataset,
+                data=data,
+                args=args,
             )
 
+            rows.append({
+                "model": model_name,
+                "fraction": fraction,
+                "nodes": int(data.num_nodes),
+                "edges": int(data.num_edges),
+                "forward_memory_mb": forward_memory_mb,
+                **stats,
+            })
     print("\n" + "=" * 120)
     print("PUBMED-TRIPLED MULTI-SEED BIAS-VARIANCE SUMMARY")
     print("=" * 120)
     print(
         f"{'Model':<14}{'Frac':<8}{'Nodes':<8}"
         f"{'Acc Mean':<12}{'Acc Std':<12}"
+        f"{'Memory MB':<12}"
         f"{'Bias^2':<12}{'Variance':<12}"
         f"{'Epoch Time':<14}"
     )
@@ -369,6 +456,7 @@ def main():
             f"{r['nodes']:<8}"
             f"{r['acc_mean']:<12.4f}"
             f"{r['acc_std']:<12.4f}"
+            f"{r['forward_memory_mb']:<12.2f}"
             f"{r['bias_sq']:<12.6f}"
             f"{r['variance']:<12.6f}"
             f"{r['time_mean']:<14.4f}"

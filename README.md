@@ -57,3 +57,64 @@ scripts/
   run_cora_multiseed_summary.py          # Cora multi-seed stability and bias–variance analysis
   run_pubmed_tripled_multiseed_summary.py # PubMed-tripled multi-seed stability and bias–variance analysis
   plot_results.py                        # Generates the final thesis plots from aggregated result values
+
+
+  NOTE: GraphSAGE, GraphSAINT, and Cluster-GCN are run using run_cora_benchmark.py and run_pubmed_tripled_benchmark.py. GAT is run using separate GAT benchmark scripts.
+
+  NOTE: The plotting script contains the final aggregated result values used for the thesis figures.
+
+
+
+  ## Installation
+
+Create a Python environment and install the required packages:
+
+```bash
+pip install -r requirements.txt
+
+NOTE: If torch-geometric does not install correctly, install PyTorch and PyTorch Geometric according to the official instructions for your system.
+
+
+
+Running the Main Experiments
+
+
+
+
+Cora: GraphSAGE, GraphSAINT, Cluster-GCN
+
+python scripts/run_cora_benchmark.py --epochs 20 --memory-mode computational
+
+
+Cora: GAT
+
+python scripts/run_cora_gat_benchmark.py --epochs 20 --memory-mode computational
+
+
+
+
+
+PubMed-tripled: GraphSAGE, GraphSAINT, Cluster-GCN
+
+python scripts/run_pubmed_tripled_benchmark.py --epochs 20 --memory-mode computational
+
+PubMed-tripled: GAT
+
+python scripts/run_pubmed_tripled_gat_benchmark.py --epochs 20 --memory-mode computational
+
+
+
+
+
+
+Multi-seed Stability and Bias–Variance Analysis
+
+Cora
+
+python scripts/run_cora_multiseed_summary.py --epochs 20 --models graphsage graphsaint clustergcn gat
+
+
+
+PubMed-tripled
+
+python scripts/run_pubmed_tripled_multiseed_summary.py --epochs 20 --models graphsage graphsaint clustergcn gat

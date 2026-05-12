@@ -3,3 +3,4 @@ torch-geometric
 scikit-learn
 psutil
 numpy
+matplotlib
