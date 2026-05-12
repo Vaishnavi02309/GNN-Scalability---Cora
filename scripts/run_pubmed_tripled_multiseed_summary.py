@@ -7,6 +7,7 @@ import random
 import sys
 import time
 from typing import Dict, List
+from sklearn.metrics import f1_score
 
 import numpy as np
 import torch
@@ -41,7 +42,16 @@ def evaluate_probs(model, data):
     probs_test = probs[test_mask]
 
     acc = float((pred_test == y_test).float().mean().item())
-    return acc, probs_test.cpu(), y_test.cpu()
+
+    macro_f1 = float(
+        f1_score(
+            y_test.cpu().numpy(),
+            pred_test.cpu().numpy(),
+            average="macro",
+            zero_division=0,
+        )
+    )
+    return acc,macro_f1, probs_test.cpu(), y_test.cpu()
 
 
 def train_full_batch_return_probs(model, data, epochs, lr, weight_decay):
@@ -76,10 +86,11 @@ def train_full_batch_return_probs(model, data, epochs, lr, weight_decay):
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    test_acc, probs_test, y_test = evaluate_probs(model, data)
+    test_acc,test_macro_f1, probs_test, y_test = evaluate_probs(model, data)
 
     return {
         "test_acc": test_acc,
+        "test_macro_f1": test_macro_f1,
         "probs_test": probs_test,
         "y_test": y_test,
         "avg_epoch_time": sum(epoch_times) / len(epoch_times),
@@ -132,10 +143,11 @@ def train_graphsaint_return_probs(model, data, epochs, lr, weight_decay):
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    test_acc, probs_test, y_test = evaluate_probs(model, data)
+    test_acc,test_macro_f1, probs_test, y_test = evaluate_probs(model, data)
 
     return {
         "test_acc": test_acc,
+        "test_macro_f1": test_macro_f1,
         "probs_test": probs_test,
         "y_test": y_test,
         "avg_epoch_time": sum(epoch_times) / len(epoch_times),
@@ -190,10 +202,11 @@ def train_clustergcn_return_probs(
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    test_acc, probs_test, y_test = evaluate_probs(model, data)
+    test_acc,test_macro_f1, probs_test, y_test = evaluate_probs(model, data)
 
     return {
         "test_acc": test_acc,
+        "test_macro_f1": test_macro_f1,
         "probs_test": probs_test,
         "y_test": y_test,
         "avg_epoch_time": sum(epoch_times) / len(epoch_times),
@@ -212,11 +225,14 @@ def compute_bias_variance(seed_outputs: List[Dict], num_classes: int):
     variance = ((probs_all - mean_probs.unsqueeze(0)) ** 2).sum(dim=2).mean().item()
 
     accs = [r["test_acc"] for r in seed_outputs]
+    f1s = [r["test_macro_f1"] for r in seed_outputs]
     times = [r["avg_epoch_time"] for r in seed_outputs]
 
     return {
         "acc_mean": float(np.mean(accs)),
         "acc_std": float(np.std(accs)),
+        "f1_mean": float(np.mean(f1s)),
+        "f1_std": float(np.std(f1s)),
         "time_mean": float(np.mean(times)),
         "time_std": float(np.std(times)),
         "bias_sq": bias_sq,
@@ -335,6 +351,7 @@ def main():
 
                 print(
                     f"  seed={seed} | test_acc={result['test_acc']:.4f} | "
+                    f"test_macro_f1={result['test_macro_f1']:.4f} | "
                     f"best_val={result['best_val_acc']:.4f} | "
                     f"avg_epoch_time={result['avg_epoch_time']:.4f}s"
                 )
@@ -357,6 +374,7 @@ def main():
     print(
         f"{'Model':<14}{'Frac':<8}{'Nodes':<8}"
         f"{'Acc Mean':<12}{'Acc Std':<12}"
+        f"{'F1 Mean':<12}{'F1 Std':<12}"
         f"{'Bias^2':<12}{'Variance':<12}"
         f"{'Epoch Time':<14}"
     )
@@ -369,6 +387,8 @@ def main():
             f"{r['nodes']:<8}"
             f"{r['acc_mean']:<12.4f}"
             f"{r['acc_std']:<12.4f}"
+            f"{r['f1_mean']:<12.4f}"
+            f"{r['f1_std']:<12.4f}"
             f"{r['bias_sq']:<12.6f}"
             f"{r['variance']:<12.6f}"
             f"{r['time_mean']:<14.4f}"

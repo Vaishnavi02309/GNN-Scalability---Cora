@@ -1,7 +1,9 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
-venv/
+*.pyo
+*.pyd
 *.backup
-venv/
-*.backup
+.DS_Store
+.ipynb_checkpoints/
